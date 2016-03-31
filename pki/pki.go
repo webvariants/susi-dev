@@ -40,3 +40,17 @@ func CreateCertificate(directory, name string) {
 		log.Println("Error: ", err)
 	}
 }
+
+// CreateDiffiHellman creates diffi hellman parameters
+func CreateDiffiHellman(directory string) {
+	createScript := fmt.Sprintf(`
+    pushd %v
+    ./easyrsa gen-dh
+    popd
+  `, directory)
+	cmd := exec.Command("/bin/bash", "-c", createScript)
+	err := cmd.Run()
+	if err != nil {
+		log.Println("Error: ", err)
+	}
+}
