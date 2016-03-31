@@ -99,11 +99,11 @@ func deploy(node, target string) {
 
 	services="$(find configs -name "*.service" -exec basename {} \;)"
 
-  ssh {{.Target}} "mkdir -p ~/.susi-dev-temp/keys && mkdir -p ~/.susi-dev-temp/configs && mkdir ~/.susi-dev-temp/assets"
+	ssh {{.Target}} "mkdir -p ~/.susi-dev-temp/keys && mkdir -p ~/.susi-dev-temp/configs && mkdir ~/.susi-dev-temp/assets"
 
 	scp $keys {{.Target}}:~/.susi-dev-temp/keys/
 	scp configs/* {{.Target}}:~/.susi-dev-temp/configs/
-  scp -r assets/* {{.Target}}:~/.susi-dev-temp/assets/
+	scp -r assets/* {{.Target}}:~/.susi-dev-temp/assets/
 
 	sshCommand="sudo mkdir -p /etc/susi/keys && mkdir -p /usr/share/susi"
 	sshCommand+=" && sudo cp ~/.susi-dev-temp/configs/*.json /etc/susi/ || true"
