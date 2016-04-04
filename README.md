@@ -1,13 +1,22 @@
 # susi-dev
 susi-dev is a tool to setup distributed susi projects easily.
+It helps creating a PKI and adding config and systemd unit files for arbitary services.
+susi-dev also automatically creates proper config file templates for the majority of susi services.
 
 ## Commands
 
-* susi-dev create node-name -> bootstrap a new node
-* susi-dev add node-name component -> setup a component on the given node
-* susi-dev deploy node-name target -> deploy a node to a target
-* susi-dev pki create folder -> create a new public key infrastructure
-* susi-dev pki add folder client-name -> create and sign a new client certificate
+* susi-dev create $node -> bootstrap a new node
+* susi-dev add $node $component -> setup a component on the given node
+* susi-dev deploy $node $target -> deploy a node to a target
+* susi-dev pki create $folder -> create a new public key infrastructure
+* susi-dev pki add $folder $client -> create and sign a new client certificate
+
+## Hints
+
+* $node is a unique node identifier like "cloud" or "host1"
+* $component is a component name like "susi-core" or "vpn-server"
+* $target is a username@host combination like "user@myhost.com"
+* the user needs working sudo on the host
 
 ## Usage by example
 ```bash
@@ -18,7 +27,7 @@ susi-dev add cloud susi-core # add susi-core to 'cloud'
 susi-dev add cloud susi-duktape # add susi-duktape (js interpreter) to 'cloud'
 susi-dev add cloud susi-gowebstack # add susi-gowebstack (http server) to 'cloud'
 
-# configure webstack config and add js sources
+# configure webstack config and add js sources...
 
 susi-dev deploy cloud user@hostname.cloud.com # deploy to hostname.cloud.com
 
