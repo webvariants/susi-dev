@@ -105,7 +105,7 @@ func deploy(node, target string) {
 	scp configs/* {{.Target}}:~/.susi-dev-temp/configs/
 	scp -r assets/* {{.Target}}:~/.susi-dev-temp/assets/
 
-	sshCommand="sudo mkdir -p /etc/susi/keys && mkdir -p /usr/share/susi"
+	sshCommand="sudo mkdir -p /etc/susi/keys && sudo mkdir -p /usr/share/susi"
 	sshCommand+=" && sudo cp ~/.susi-dev-temp/configs/*.json /etc/susi/ || true"
 	sshCommand+=" && sudo cp ~/.susi-dev-temp/configs/*.ovpn /etc/susi/ || true"
 	sshCommand+=" && sudo cp ~/.susi-dev-temp/configs/*.service /etc/systemd/system/ || true"
