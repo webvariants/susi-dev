@@ -10,6 +10,7 @@ import (
 	"./container"
 	"./deploy"
 	"./pki"
+	"./setup"
 	"./source"
 )
 
@@ -43,6 +44,10 @@ func main() {
 		os.Exit(1)
 	}
 	switch os.Args[1] {
+	case "setup":
+		{
+			setup.InstallDependencies()
+		}
 	case "create":
 		{
 			nodeID := os.Args[2]
@@ -112,6 +117,10 @@ func main() {
 			case "checkout":
 				{
 					source.Checkout(os.Args[3])
+				}
+			case "clone":
+				{
+					source.Clone()
 				}
 			}
 		}
