@@ -27,8 +27,8 @@ func help() {
 	helpText := `usage: susi-dev
   setup -> install container tools
   create $node -> bootstrap a new node
-    add $node $component -> setup a component on the given node
-    deploy $node $target -> deploy a node to a target
+  add $node $component -> setup a component on the given node
+  deploy $node $target -> deploy a node to a target
   source
     clone -> clone the source of susi
     checkout $branch -> checkout a specific branch
