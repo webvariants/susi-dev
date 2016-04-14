@@ -256,6 +256,19 @@ func RunDebianBuilder(version string) {
 	runScriptWithSudo(script)
 }
 
+//RunNativeBuilder runs the susi-on-debian-builder
+func RunNativeBuilder() {
+	script := `
+		mkdir -p .native-build
+		cd .native-build
+		cmake ../.susi-src
+		make -j8 package
+		cp *.deb ../susi-native-build.deb
+	`
+	fmt.Printf("Running native build...\n")
+	runScript(script)
+}
+
 // Run starts a pod for a node
 func Run(node string) {
 	script := fmt.Sprintf("sudo rkt run %v/containers/*.aci", node)

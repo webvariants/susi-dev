@@ -11,7 +11,7 @@ susi-dev also automatically creates proper config file templates for the majorit
 * susi-dev source
   * clone -> clone the source of susi
   * checkout $branch -> checkout a specific branch
-  * build --os $OS --gpgpass $pass -> build it for one of alpine, debian-stable or debian-testing
+  * build --os $OS --gpgpass $pass -> build it for one of alpine, debian-stable, debian-testing or native
 * susi-dev container
   * build $node --gpgpass $pass -> build containers for a node
   * run $node -> runs the containers for a node
