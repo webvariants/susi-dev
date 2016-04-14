@@ -90,6 +90,7 @@ func RunAlpineBuilder() {
 	script := fmt.Sprintf(`
   mkdir -p .alpine-build
   sudo rkt run \
+	--trust-keys-from-https \
   --volume susi,kind=host,source=$(pwd)/.susi-src \
   --volume out,kind=host,source=$(pwd)/.alpine-build \
   .susi-builder-alpine-latest-linux-amd64.aci
@@ -245,6 +246,7 @@ func RunDebianBuilder(version string) {
 	script := fmt.Sprintf(`
   mkdir -p .debian-%v-build
   sudo rkt run \
+		--trust-keys-from-https \
   	--volume susi,kind=host,source=$(pwd)/.susi-src \
   	--volume out,kind=host,source=$(pwd)/.debian-%v-build \
   	.susi-builder-debian-%v-latest-linux-amd64.aci
