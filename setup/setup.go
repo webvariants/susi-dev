@@ -40,7 +40,7 @@ func InstallDependencies() {
       git clone git://github.com/appc/docker2aci /opt/docker2aci
       pushd /opt/docker2aci
       ./build.sh
-      sudo ln -sf /opt/docker2aci/docker2aci /usr/local/bin/docker2aci
+      sudo ln -sf /opt/docker2aci/bin/docker2aci /usr/local/bin/docker2aci
 			popd
 		fi
     if ! test -f /usr/local/bin/acbuild; then
