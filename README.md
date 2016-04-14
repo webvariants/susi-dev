@@ -79,9 +79,7 @@ Do not forget that you need to install the susi-binaries on that host. You can e
 ## How to build debian packages
 If you want debian packages of susi, use the following commands.
 ```bash
-
 susi-dev source build --os debian-stable --gpgpass $GPG_PASS
 susi-dev source build --os debian-testing --gpgpass $GPG_PASS
-
 ```
 Now the files susi-debian-stable.deb and susi-debian-testing.deb should be available in your working directory.
