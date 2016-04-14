@@ -84,7 +84,7 @@ susi-dev source build --os debian-testing --gpgpass $GPG_PASS
 Now the files susi-debian-stable.deb and susi-debian-testing.deb should be available in your working directory.
 
 ##  Getting started on Ubuntu
-Copy this little script to your machine and source it into your current shell and follow the instructions
+Execute this command on your machine and follow the instructions.
 ```bash
 wget -qO /tmp/setup-susi-dev.sh https://raw.githubusercontent.com/webvariants/susi-dev/master/setup.sh && bash /tmp/setup-susi-dev.sh
 ```
