@@ -29,6 +29,14 @@ susi-dev also automatically creates proper config file templates for the majorit
 * $pass is the passphrase of your users gpg key
 * the user needs working sudo on the host
 
+##  Getting started on Debian / Ubuntu
+Execute this command on your machine and follow the instructions. If you are on Debian stable the script will update your kernel, so be prepared to reboot and re-run the script.
+```bash
+wget -qO /tmp/setup-susi-dev.sh https://raw.githubusercontent.com/webvariants/susi-dev/master/setup.sh && bash /tmp/setup-susi-dev.sh
+```
+Now susi-dev is fully setup and functional, and you have the GPG_PASS variable exported to your current shell.
+Go ahead and paste the "How To Develop" code into your shell. After a few minutes you should see your first running susi container setup.
+
 ## How to develop
 
 Simply copy and paste this into your console to simulate the setup of a gateway application.
@@ -82,11 +90,3 @@ susi-dev source build --os debian-stable --gpgpass $GPG_PASS
 susi-dev source build --os debian-testing --gpgpass $GPG_PASS
 ```
 Now the files susi-debian-stable.deb and susi-debian-testing.deb should be available in your working directory.
-
-##  Getting started on Debian / Ubuntu
-Execute this command on your machine and follow the instructions. If you are on Debian stable the script will update your kernel, so be prepared to reboot and re-run the script. 
-```bash
-wget -qO /tmp/setup-susi-dev.sh https://raw.githubusercontent.com/webvariants/susi-dev/master/setup.sh && bash /tmp/setup-susi-dev.sh
-```
-Now susi-dev is fully setup and functional, and you have the GPG_PASS variable exported to your current shell.
-Go ahead and paste the "How To Develop" code into your shell. After a few minutes you should see your first running susi container setup.
