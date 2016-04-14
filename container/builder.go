@@ -33,6 +33,9 @@ func runScriptWithSudo(script string) {
 
 // BuildAlpineBuilder creates an container for building alpine susi binaries
 func BuildAlpineBuilder(gpgpass string) {
+	if _, err := os.Stat(".susi-builder-alpine-latest-linux-amd64.aci"); err != nil && gpgpass == "" {
+		log.Fatal("please specify --gpgpass")
+	}
 	script := `
   if ! test -f .susi-builder-alpine-latest-linux-amd64.aci; then
     set -e
@@ -127,7 +130,10 @@ func BuildAlpineBaseContainer() {
 
 // BuildAlpineContainer builds a susi service container
 func BuildAlpineContainer(node, component, gpgpass string) {
-
+	container := fmt.Sprintf("%v/containers/%v-latest-linux-amd64.aci", node, component)
+	if _, err := os.Stat(container); err != nil && gpgpass == "" {
+		log.Fatal("please specify --gpgpass")
+	}
 	templateString := `
   acbuild --debug begin ./.susi-base-latest-linux-amd64.aci
 
@@ -185,6 +191,10 @@ func BuildAlpineContainer(node, component, gpgpass string) {
 
 //BuildDebianBuilder builds a susi builder on debian stable
 func BuildDebianBuilder(version, gpgpass string) {
+	container := fmt.Sprintf(".susi-builder-debian-%v-latest-linux-amd64.aci", version)
+	if _, err := os.Stat(container); err != nil && gpgpass == "" {
+		log.Fatal("please specify --gpgpass")
+	}
 	script := fmt.Sprintf(`
   if ! test -f .susi-builder-debian-%v-latest-linux-amd64.aci; then
     set -e
@@ -258,6 +268,10 @@ func RunDebianBuilder(version string) {
 
 //BuildArmBuilder builds a susi builder on arm
 func BuildArmBuilder(version, gpgpass string) {
+	container := fmt.Sprintf(".susi-builder-%v-latest-linux-amd64.aci", version)
+	if _, err := os.Stat(container); err != nil && gpgpass == "" {
+		log.Fatal("please specify --gpgpass")
+	}
 	script := fmt.Sprintf(`
   if ! test -f .susi-builder-%v-latest-linux-amd64.aci; then
     set -e
@@ -269,7 +283,7 @@ func BuildArmBuilder(version, gpgpass string) {
 
 		if ! test -f .builder-%v.aci; then
 			docker2aci docker://thewtex/cross-compiler-linux-%v
-			mv lthewtex-cross-compiler-linux-%v-latest.aci .builder-%v.aci
+			mv thewtex-cross-compiler-linux-%v-latest.aci .builder-%v.aci
 		fi
 
     # Start the build with debian base

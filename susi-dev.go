@@ -132,9 +132,13 @@ func main() {
 							container.RunNativeBuilder()
 						}
 					case "armv6":
+						{
+							container.BuildArmBuilder(*targetOS, *gpgPass)
+							container.RunArmBuilder(*targetOS)
+						}
 					case "armv7":
 						{
-							container.BuildArmBuilder(*targetOS)
+							container.BuildArmBuilder(*targetOS, *gpgPass)
 							container.RunArmBuilder(*targetOS)
 						}
 					default:
