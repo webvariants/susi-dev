@@ -5,7 +5,7 @@ if uname -a | grep Ubuntu; then
 fi
 
 if uname -a | grep Debian; then
-  sudo apt-get --yes install golang gcc rng-tools
+  sudo apt-get --yes install golang gcc rng-tools git make
   expected=3.18
   received=$(uname -r)
   min=$(echo -e $expected"\n"$received|sort -V|head -n 1)
