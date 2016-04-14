@@ -60,7 +60,6 @@ func CreateSystemdUnitFile(node, component string) {
 //CreateConfigFile creates a config for a component and writes it to the node configs
 func CreateConfigFile(node, component string, connectTo, connectToAddress *string) {
 	config := GetConfig(node, component, connectTo, connectToAddress)
-	fmt.Println(config)
 	if config != "" {
 		extension := "json"
 		if strings.HasPrefix(component, "vpn-") {
