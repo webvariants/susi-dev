@@ -36,7 +36,6 @@ Simply copy and paste this into your console to simulate the setup of a gateway 
 ```bash
 
 # Download and compile susi binaries
-susi-dev setup
 susi-dev source build --gpgpass $GPG_PASS
 
 # Create a cloud instance
@@ -83,3 +82,29 @@ susi-dev source build --os debian-stable --gpgpass $GPG_PASS
 susi-dev source build --os debian-testing --gpgpass $GPG_PASS
 ```
 Now the files susi-debian-stable.deb and susi-debian-testing.deb should be available in your working directory.
+
+##  Getting started on Ubuntu
+Copy this little script to your machine and source it into your current shell
+```bash
+# Install dependencies
+sudo apt-get --yes install golang gcc systemd-container rng-tools
+
+# setup go
+mkdir ~/go
+export GOPATH=~/go
+export PATH=$GOPATH/bin:$PATH
+
+# generate gpg key for container signing and export passphrase to current shell
+rngd -r /dev/urandom
+gpg --gen-key
+gpg --export --armor > mykey.pub
+echo -n "Insert your choosen passphrase: "
+read GPG_PASS
+export GPG_PASS
+
+# install susi-dev tool
+go get github.com/webvariants/susi-dev
+
+susi-dev setup
+sudo rkt trust --root mykey.pub
+```
