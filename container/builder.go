@@ -256,6 +256,78 @@ func RunDebianBuilder(version string) {
 	runScriptWithSudo(script)
 }
 
+//BuildArmBuilder builds a susi builder on arm
+func BuildArmBuilder(version, gpgpass string) {
+	script := fmt.Sprintf(`
+  if ! test -f .susi-builder-%v-latest-linux-amd64.aci; then
+    set -e
+
+    if [ "$EUID" -ne 0 ]; then
+      echo "This script uses functionality which requires root privileges"
+      exit 1
+    fi
+
+		if ! test -f .builder-%v.aci; then
+			docker2aci docker://thewtex/cross-compiler-linux-%v
+			mv lthewtex-cross-compiler-linux-%v-latest.aci .builder-%v.aci
+		fi
+
+    # Start the build with debian base
+    acbuild begin .builder-%v.aci
+
+    # In the event of the script exiting, end the build
+    trap "{ export EXT=$?; acbuild --debug end && exit $EXT; }" EXIT
+
+    # Name the ACI
+    acbuild set-name susi.io/%v-builder
+
+    acbuild --debug run -- apt-get --yes update
+    acbuild --debug run -- apt-get --yes install git libssl-dev libboost-all-dev libmosquitto-dev libmosquittopp-dev libleveldb-dev golang
+		acbuild --debug run -- apt-get clean
+
+    acbuild mount add susi /susi
+    acbuild mount add out /out
+
+    # Run build
+    acbuild set-exec -- /bin/sh -c "cd /out && cmake /susi && make -j8 package && GOPATH=/out go get github.com/webvariants/susi-gowebstack"
+
+    # Write the result
+    acbuild --debug write --overwrite .susi-builder-%v-latest-linux-amd64.aci
+  fi
+
+  if ! test -d .susi-src; then
+    git clone --recursive https://github.com/webvariants/susi.git .susi-src
+  fi
+  `, version, version, version, version, version, version, version, version)
+
+	fmt.Printf("Preparing %v build container...\n", version)
+	runScriptWithSudo(script)
+	if gpgpass != "" {
+		fmt.Printf("Signing %v build container...\n", version)
+		signScript := fmt.Sprintf(`
+			if ! test -f .susi-builder-%v-latest-linux-amd64.aci.asc; then
+				gpg --batch --passphrase %v --sign --detach-sign --armor .susi-builder-%v-latest-linux-amd64.aci
+			fi
+			`, version, gpgpass, version)
+		runScript(signScript)
+	}
+}
+
+//RunArmBuilder runs the susi-on-debian-builder
+func RunArmBuilder(version string) {
+	script := fmt.Sprintf(`
+  mkdir -p .%v-build
+  sudo rkt run \
+		--trust-keys-from-https \
+  	--volume susi,kind=host,source=$(pwd)/.susi-src \
+  	--volume out,kind=host,source=$(pwd)/.%v-build \
+  	.susi-builder-%v-latest-linux-amd64.aci
+	cp .%v-build/*.deb ./susi-debian-%v.deb
+	`, version, version, version, version, version)
+	fmt.Printf("Running %v build...\n", version)
+	runScriptWithSudo(script)
+}
+
 //RunNativeBuilder runs the susi-on-debian-builder
 func RunNativeBuilder() {
 	script := `

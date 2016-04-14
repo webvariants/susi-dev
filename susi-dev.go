@@ -131,6 +131,12 @@ func main() {
 						{
 							container.RunNativeBuilder()
 						}
+					case "armv6":
+					case "armv7":
+						{
+							container.BuildArmBuilder(*targetOS)
+							container.RunArmBuilder(*targetOS)
+						}
 					default:
 						{
 							log.Fatal("no such target os")
