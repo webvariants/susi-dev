@@ -25,7 +25,7 @@ export PATH=$GOPATH/bin:$PATH
 
 # generate gpg key for container signing and export passphrase to current shell
 if ! gpg --list-keys | grep pub; then
-  rngd -r /dev/urandom
+  sudo rngd -r /dev/urandom
   gpg --gen-key
   gpg --export --armor > mykey.pub
 fi
