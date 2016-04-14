@@ -8,7 +8,7 @@ import (
 	"os"
 	"os/exec"
 
-	"../components"
+	"github.com/webvariants/susi-dev/components"
 )
 
 func runScript(script string) {

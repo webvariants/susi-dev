@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"../pki"
+	"github.com/webvariants/susi-dev/pki"
 )
 
 func filterStringList(s []string, fn func(string) bool) []string {

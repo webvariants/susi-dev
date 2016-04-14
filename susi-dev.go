@@ -6,12 +6,12 @@ import (
 	"log"
 	"os"
 
-	"./components"
-	"./container"
-	"./deploy"
-	"./pki"
-	"./setup"
-	"./source"
+	"github.com/webvariants/susi-dev/components"
+	"github.com/webvariants/susi-dev/container"
+	"github.com/webvariants/susi-dev/deploy"
+	"github.com/webvariants/susi-dev/pki"
+	"github.com/webvariants/susi-dev/setup"
+	"github.com/webvariants/susi-dev/source"
 )
 
 var (
