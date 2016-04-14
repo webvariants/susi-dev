@@ -23,6 +23,26 @@ var (
 	gpgPass          *string
 )
 
+func help() {
+	helpText := `usage: susi-dev
+  setup -> install container tools
+  create $node -> bootstrap a new node
+    add $node $component -> setup a component on the given node
+    deploy $node $target -> deploy a node to a target
+  source
+    clone -> clone the source of susi
+    checkout $branch -> checkout a specific branch
+    build --os $OS --gpgpass $pass -> build it for one of alpine, debian-stable or debian-testing
+  container
+    build $node --gpgpass $pass -> build containers for a node
+    run $node -> runs the containers for a node
+  pki
+    create $folder -> create a new public key infrastructure
+    add $folder $client -> create and sign a new client certificate
+`
+	fmt.Print(helpText)
+}
+
 func init() {
 	connectTo = addFlags.String("connect-to", "", "connect to this instance")
 	connectToAddress = addFlags.String("addr", "", "address of the instance to connect to")
@@ -40,7 +60,7 @@ func create(name string) {
 
 func main() {
 	if len(os.Args) == 1 {
-		fmt.Printf("usage: %v <create|add|deploy|pki|container>\n", os.Args[0])
+		help()
 		os.Exit(1)
 	}
 	switch os.Args[1] {
@@ -156,6 +176,16 @@ func main() {
 	case "list":
 		{
 			fmt.Println(components.List(os.Args[2]))
+		}
+	case "--help":
+		{
+			help()
+			os.Exit(0)
+		}
+	default:
+		{
+			help()
+			os.Exit(1)
 		}
 	}
 }
