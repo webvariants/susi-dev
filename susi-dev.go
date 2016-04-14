@@ -136,7 +136,6 @@ func main() {
 							log.Fatal("no such target os")
 						}
 					}
-
 				}
 			case "checkout":
 				{
