@@ -12,9 +12,9 @@ susi-dev also automatically creates proper config file templates for the majorit
   * clone -> clone the source of susi
   * checkout $branch -> checkout a specific branch
   * build --os $OS --gpgpass $pass -> build it for one of alpine, debian-stable, debian-testing or native
-* susi-dev container
-  * build $node --gpgpass $pass -> build containers for a node
-  * run $node -> runs the containers for a node
+* susi-dev build $node --gpgpass $pass -> build containers for a node
+* susi-dev start ($node) -> runs the containers
+* susi-dev stop ($node) -> stops the containers
 * susi-dev pki
   * create $folder -> create a new public key infrastructure
   * add $folder $client -> create and sign a new client certificate

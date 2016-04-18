@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/webvariants/susi-dev/components"
 )
@@ -119,7 +120,7 @@ func BuildAlpineBaseContainer() {
     acbuild --debug dep add quay.io/coreos/alpine-sh
     acbuild --debug run -- /bin/sh -c "echo -en 'http://dl-4.alpinelinux.org/alpine/v3.3/main\n@testing http://dl-4.alpinelinux.org/alpine/edge/testing\n' > /etc/apk/repositories"
     acbuild --debug run -- apk update
-    acbuild --debug run -- apk add libssl1.0 boost-system boost-program_options mosquitto leveldb@testing
+    acbuild --debug run -- apk add libssl1.0 boost-system boost-program_options mosquitto-dev leveldb@testing
 
     for lib in .build/alpine/lib/*.so; do
       acbuild --debug copy $lib /lib/$(basename $lib)
@@ -155,6 +156,8 @@ func BuildAlpineContainer(node, component, gpgpass string) {
   for key in $(find {{.Node}}/foreignKeys -type f); do
     acbuild --debug copy $key /etc/susi/keys/$(echo $key|cut -d\/ -f 3,4,5,6,7,8,9)
   done
+	acbuild --debug copy nodes.txt /etc/hosts
+	acbuild --debug run -- /bin/sh -c "echo '127.0.0.1 localhost' >> /etc/hosts"
 
   {{.Extra}}
 
@@ -288,14 +291,36 @@ func RunNativeBuilder() {
 	runScript(script)
 }
 
-// Run starts a pod for a node
-func Run(node string) {
-	script := fmt.Sprintf("sudo rkt run %v/containers/*.aci", node)
+//Prepare prepares a pod
+func Prepare(node string) (uuid string) {
+	script := fmt.Sprintf("sudo rkt prepare %v/containers/*.aci ", node)
 	cmd := exec.Command("/bin/bash", "-c", script)
+	var out bytes.Buffer
 	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
+	cmd.Stdout = &out
 	err := cmd.Run()
 	if err != nil {
 		log.Println("Error: ", err)
 	}
+	uuid = strings.Trim(out.String(), "\n")
+	return uuid
+}
+
+// Run starts a pod for a node
+func Run(uuid, ip string) (systemdID string) {
+	script := fmt.Sprintf("sudo systemd-run rkt run-prepared --net=\"default:ip=%v;\" %v", ip, uuid)
+	cmd := exec.Command("/bin/bash", "-c", script)
+	var out bytes.Buffer
+	cmd.Stderr = &out
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		log.Println("Error: ", err)
+	}
+	text := out.String()
+	words := strings.Split(text, " ")
+	last := words[3]
+	words = strings.Split(last, ".")
+	systemdID = words[0]
+	return systemdID
 }

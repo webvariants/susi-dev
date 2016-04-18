@@ -5,22 +5,25 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
+	"strconv"
 
 	"github.com/webvariants/susi-dev/components"
 	"github.com/webvariants/susi-dev/container"
 	"github.com/webvariants/susi-dev/deploy"
+	"github.com/webvariants/susi-dev/nodes"
 	"github.com/webvariants/susi-dev/pki"
 	"github.com/webvariants/susi-dev/setup"
 	"github.com/webvariants/susi-dev/source"
 )
 
 var (
-	addFlags         = flag.NewFlagSet("add", flag.ContinueOnError)
-	connectTo        *string
-	connectToAddress *string
-	buildFlags       = flag.NewFlagSet("build", flag.ContinueOnError)
-	targetOS         *string
-	gpgPass          *string
+	addFlags   = flag.NewFlagSet("add", flag.ContinueOnError)
+	connectTo  *string
+	fqdn       *string
+	buildFlags = flag.NewFlagSet("build", flag.ContinueOnError)
+	targetOS   *string
+	gpgPass    *string
 )
 
 func help() {
@@ -45,9 +48,55 @@ func help() {
 
 func init() {
 	connectTo = addFlags.String("connect-to", "", "connect to this instance")
-	connectToAddress = addFlags.String("addr", "", "address of the instance to connect to")
+	fqdn = addFlags.String("fqdn", "", "address of the instance")
 	targetOS = buildFlags.String("os", "alpine", "for which OS")
 	gpgPass = buildFlags.String("gpgpass", "", "password for signing key")
+}
+
+func start(nodeID string) {
+	myNodes, _ := nodes.Load("nodes.txt")
+	node := myNodes[nodeID]
+	if node.PodID != "" {
+		script := fmt.Sprintf("sudo systemctl stop %v\nsudo rkt rm %v\n", node.SystemdID, node.PodID)
+		cmd := exec.Command("/bin/bash", "-c", script)
+		cmd.Stderr = os.Stderr
+		cmd.Stdout = os.Stdout
+		err := cmd.Run()
+		if err != nil {
+			log.Println("Error: ", err)
+		}
+	}
+	uuid := container.Prepare(nodeID)
+	node.PodID = uuid
+	node.SystemdID = container.Run(node.PodID, node.IP)
+	myNodes.Set(node)
+	myNodes.Save("nodes.txt")
+}
+
+func stop(nodeID string) {
+	myNodes, _ := nodes.Load("nodes.txt")
+	node := myNodes[nodeID]
+	script := fmt.Sprintf("sudo systemctl stop %v\nsudo rkt rm %v\n", node.SystemdID, node.PodID)
+	cmd := exec.Command("/bin/bash", "-c", script)
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	err := cmd.Run()
+	if err != nil {
+		log.Println("Error: ", err)
+	}
+}
+
+func status(nodeID string) {
+	myNodes, _ := nodes.Load("nodes.txt")
+	node := myNodes[nodeID]
+	script := fmt.Sprintf("sudo systemctl status %v", node.SystemdID)
+	cmd := exec.Command("/bin/bash", "-c", script)
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	err := cmd.Run()
+	if err != nil {
+		log.Println("Error: ", err)
+	}
 }
 
 func create(name string) {
@@ -56,6 +105,20 @@ func create(name string) {
 	os.Mkdir(name+"/assets", 0755)
 	os.Mkdir(name+"/foreignKeys", 0755)
 	os.Mkdir(name+"/containers", 0755)
+	myNodes, _ := nodes.Load("nodes.txt")
+	fqdn := *fqdn
+	if fqdn == "" {
+		fqdn = name
+	}
+	node := nodes.Node{
+		ID:        name,
+		IP:        "172.16.28." + strconv.Itoa(len(myNodes)+2),
+		Fqdn:      fqdn,
+		PodID:     "",
+		SystemdID: "",
+	}
+	myNodes.Set(node)
+	myNodes.Save("nodes.txt")
 }
 
 func main() {
@@ -71,6 +134,7 @@ func main() {
 	case "create":
 		{
 			nodeID := os.Args[2]
+			addFlags.Parse(os.Args[3:])
 			create(nodeID)
 		}
 	case "add":
@@ -78,7 +142,12 @@ func main() {
 			nodeID := os.Args[2]
 			component := os.Args[3]
 			addFlags.Parse(os.Args[4:])
-			components.Add(nodeID, component, connectTo, connectToAddress)
+			myNodes, _ := nodes.Load("nodes.txt")
+			fqdn := myNodes[*connectTo].Fqdn
+			if fqdn == "" {
+				fqdn = *connectTo
+			}
+			components.Add(nodeID, component, connectTo, &fqdn)
 		}
 	case "deploy":
 		{
@@ -147,33 +216,77 @@ func main() {
 				}
 			}
 		}
-	case "container":
+	case "build":
 		{
-			subcommand := os.Args[2]
-			switch subcommand {
-			case "build":
+			nodeID := os.Args[2]
+			buildFlags.Parse(os.Args[3:])
+			source.Clone()
+			switch *targetOS {
+			case "alpine":
 				{
-					nodeID := os.Args[3]
-					buildFlags.Parse(os.Args[4:])
-					source.Clone()
-					switch *targetOS {
-					case "alpine":
-						{
-							container.BuildAlpineBaseContainer()
-							for _, component := range components.List(nodeID) {
-								container.BuildAlpineContainer(nodeID, component, *gpgPass)
-							}
-						}
-					default:
-						{
-							log.Fatal("no such target os")
-						}
+					container.BuildAlpineBaseContainer()
+					for _, component := range components.List(nodeID) {
+						container.BuildAlpineContainer(nodeID, component, *gpgPass)
 					}
 				}
-			case "run":
+			default:
 				{
-					container.Run(os.Args[3])
+					log.Fatal("no such target os")
 				}
+			}
+		}
+	case "start":
+		{
+			if len(os.Args) < 3 {
+				myNodes, _ := nodes.Load("nodes.txt")
+				for id := range myNodes {
+					start(id)
+				}
+			} else {
+				nodeID := os.Args[2]
+				start(nodeID)
+			}
+		}
+	case "status":
+		{
+			if len(os.Args) < 3 {
+				myNodes, _ := nodes.Load("nodes.txt")
+				for id := range myNodes {
+					status(id)
+				}
+			} else {
+				nodeID := os.Args[2]
+				status(nodeID)
+			}
+		}
+	case "stop":
+		{
+			if len(os.Args) < 3 {
+				myNodes, _ := nodes.Load("nodes.txt")
+				for id := range myNodes {
+					start(id)
+				}
+			} else {
+				nodeID := os.Args[2]
+				stop(nodeID)
+			}
+		}
+	case "logs":
+		{
+			nodeID := os.Args[2]
+			myNodes, _ := nodes.Load("nodes.txt")
+			node := myNodes[nodeID]
+			additional := ""
+			for i := 3; i < len(os.Args); i++ {
+				additional += os.Args[i] + " "
+			}
+			script := fmt.Sprintf("sudo journalctl -M rkt-%v %v", node.PodID, additional)
+			cmd := exec.Command("/bin/bash", "-c", script)
+			cmd.Stderr = os.Stderr
+			cmd.Stdout = os.Stdout
+			err := cmd.Run()
+			if err != nil {
+				log.Println("Error: ", err)
 			}
 		}
 	case "list":
