@@ -24,7 +24,7 @@ func Raw(node, target string) {
 
 	services="$(find configs -name "*.service" -exec basename {} \;)"
 
-	ssh {{.Target}} "mkdir -p ~/.susi-dev-temp/keys && rm -rf ~/.susi-dev-temp/* && mkdir ~/.susi-dev-temp/configs && mkdir ~/.susi-dev-temp/assets"
+	ssh {{.Target}} "rm -rf ~/.susi-dev-temp/* && mkdir -p ~/.susi-dev-temp/keys && mkdir ~/.susi-dev-temp/configs && mkdir ~/.susi-dev-temp/assets"
 
 	scp $keys {{.Target}}:~/.susi-dev-temp/keys/
 	scp configs/* {{.Target}}:~/.susi-dev-temp/configs/
