@@ -264,7 +264,7 @@ func main() {
 			if len(os.Args) < 3 {
 				myNodes, _ := nodes.Load("nodes.txt")
 				for id := range myNodes {
-					start(id)
+					stop(id)
 				}
 			} else {
 				nodeID := os.Args[2]
