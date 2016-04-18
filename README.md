@@ -64,8 +64,8 @@ mkdir gateway-1/assets/webroot
 echo "it works" > gateway-1/assets/webroot/index.html
 
 # build containers for 'gateway-1'
-susi-dev container build gateway-1 --gpgpass $GPG_PASS # build containers for 'gateway-1'
-susi-dev container run gateway-1 # run containers for 'gateway-1'
+susi-dev build gateway-1 --gpgpass $GPG_PASS # build containers for 'gateway-1'
+susi-dev start gateway-1 # run containers for 'gateway-1'
 
 ```
 
