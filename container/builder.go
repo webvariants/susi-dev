@@ -156,8 +156,9 @@ func BuildAlpineContainer(node, component, gpgpass string) {
   for key in $(find {{.Node}}/foreignKeys -type f); do
     acbuild --debug copy $key /etc/susi/keys/$(echo $key|cut -d\/ -f 3,4,5,6,7,8,9)
   done
-	acbuild --debug copy nodes.txt /etc/hosts
-	acbuild --debug run -- /bin/sh -c "echo '127.0.0.1 localhost' >> /etc/hosts"
+	cp nodes.txt .hosts
+	echo "127.0.0.1 localhost" >> .hosts
+	acbuild --debug copy .hosts /etc/hosts
 
   {{.Extra}}
 
