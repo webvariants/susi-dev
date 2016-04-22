@@ -309,7 +309,7 @@ func Prepare(node string) (uuid string) {
 
 // Run starts a pod for a node
 func Run(uuid, ip string) (systemdID string) {
-	script := fmt.Sprintf("sudo systemd-run rkt run-prepared --net=\"default:ip=%v;\" %v", ip, uuid)
+	script := fmt.Sprintf("sudo systemd-run -p Environment=CNI_ARGS=IP=%v rkt run-prepared %v", ip, uuid)
 	cmd := exec.Command("/bin/bash", "-c", script)
 	var out bytes.Buffer
 	cmd.Stderr = &out

@@ -99,6 +99,22 @@ func status(nodeID string) {
 	}
 }
 
+func build(nodeID string) {
+	switch *targetOS {
+	case "alpine":
+		{
+			container.BuildAlpineBaseContainer()
+			for _, component := range components.List(nodeID) {
+				container.BuildAlpineContainer(nodeID, component, *gpgPass)
+			}
+		}
+	default:
+		{
+			log.Fatal("no such target os")
+		}
+	}
+}
+
 func create(name string) {
 	pki.Init(name + "/pki")
 	os.Mkdir(name+"/configs", 0755)
@@ -218,21 +234,16 @@ func main() {
 		}
 	case "build":
 		{
-			nodeID := os.Args[2]
-			buildFlags.Parse(os.Args[3:])
-			source.Clone()
-			switch *targetOS {
-			case "alpine":
-				{
-					container.BuildAlpineBaseContainer()
-					for _, component := range components.List(nodeID) {
-						container.BuildAlpineContainer(nodeID, component, *gpgPass)
-					}
+			if len(os.Args) < 3 {
+				buildFlags.Parse(os.Args[2:])
+				myNodes, _ := nodes.Load("nodes.txt")
+				for id := range myNodes {
+					build(id)
 				}
-			default:
-				{
-					log.Fatal("no such target os")
-				}
+			} else {
+				nodeID := os.Args[2]
+				buildFlags.Parse(os.Args[3:])
+				build(nodeID)
 			}
 		}
 	case "start":
