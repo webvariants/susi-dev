@@ -234,8 +234,9 @@ func main() {
 		}
 	case "build":
 		{
-			if len(os.Args) < 3 {
+			if os.Args[2][0] == '-' {
 				buildFlags.Parse(os.Args[2:])
+				log.Println(buildFlags)
 				myNodes, _ := nodes.Load("nodes.txt")
 				for id := range myNodes {
 					build(id)
