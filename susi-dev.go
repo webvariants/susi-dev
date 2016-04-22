@@ -300,6 +300,21 @@ func main() {
 				log.Println("Error: ", err)
 			}
 		}
+	case "enter":
+		{
+			nodeID := os.Args[2]
+			myNodes, _ := nodes.Load("nodes.txt")
+			node := myNodes[nodeID]
+			script := fmt.Sprintf("sudo rkt enter --app susi-core %v /bin/sh", node.PodID)
+			cmd := exec.Command("/bin/bash", "-c", script)
+			cmd.Stdin = os.Stdin
+			cmd.Stderr = os.Stderr
+			cmd.Stdout = os.Stdout
+			err := cmd.Run()
+			if err != nil {
+				log.Println("Error: ", err)
+			}
+		}
 	case "list":
 		{
 			fmt.Println(components.List(os.Args[2]))

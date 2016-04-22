@@ -294,7 +294,7 @@ func RunNativeBuilder() {
 
 //Prepare prepares a pod
 func Prepare(node string) (uuid string) {
-	script := fmt.Sprintf("sudo rkt prepare %v/containers/*.aci ", node)
+	script := fmt.Sprintf("sudo rkt prepare %v/containers/*.aci", node)
 	cmd := exec.Command("/bin/bash", "-c", script)
 	var out bytes.Buffer
 	cmd.Stderr = os.Stderr
