@@ -6,11 +6,36 @@ import (
 	"html/template"
 	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
 
 	"github.com/webvariants/susi-dev/pki"
 )
+
+// Component is a interface for all susi components
+type Component interface {
+	Config() string
+	StartCommand() string
+	BuildContainer(node, gpgpass string)
+}
+
+var components map[string]Component
+
+func init() {
+	components = make(map[string]Component)
+	components["susi-authenticator"] = new(susiAuthenticatorComponent)
+	components["susi-cluster"] = new(susiClusterComponent)
+	components["susi-core"] = new(susiCoreComponent)
+	components["susi-duktape"] = new(susiDuktapeComponent)
+	components["susi-leveldb"] = new(susiLevelDBComponent)
+	components["susi-mqtt"] = new(susiMQTTComponent)
+	components["susi-serial"] = new(susiSerialComponent)
+	components["susi-shell"] = new(susiShellComponent)
+	components["susi-statefile"] = new(susiStatefileComponent)
+	components["susi-udpserver"] = new(susiUDPServerComponent)
+	components["susi-webhooks"] = new(susiWebhooksComponent)
+}
 
 func filterStringList(s []string, fn func(string) bool) []string {
 	var p []string // == nil
@@ -25,8 +50,8 @@ func filterStringList(s []string, fn func(string) bool) []string {
 // Add adds a compnent to a node
 func Add(node, component string, connectTo *string, connectToAddress *string) {
 	pki.CreateCertificate(node+"/pki", component)
-	CreateSystemdUnitFile(node, component)
-	CreateConfigFile(node, component, connectTo, connectToAddress)
+	createSystemdUnitFile(node, component)
+	createConfigFile(node, component, connectTo, connectToAddress)
 	if *connectTo != "" {
 		pki.CreateCertificate(*connectTo+"/pki", node)
 		srcFolder := *connectTo + "/pki/pki/issued/" + node + ".crt"
@@ -42,14 +67,16 @@ func Add(node, component string, connectTo *string, connectToAddress *string) {
 		exec.Command("cp", "-f", srcFolder, destFolder).Run()
 
 	}
-	if component == "vpn-server" {
-		pki.CreateDiffiHellman(node + "/pki")
-	}
 }
 
-//CreateSystemdUnitFile creates a unitfile and writes it to the node configs
-func CreateSystemdUnitFile(node, component string) {
-	unitfile := GetUnitfile(component)
+//Build builds a service container for the specified component
+func Build(node, component, gpgpass string) {
+	components[component].BuildContainer(node, gpgpass)
+}
+
+//createSystemdUnitFile creates a unitfile and writes it to the node configs
+func createSystemdUnitFile(node, component string) {
+	unitfile := getUnitfile(component)
 	path := fmt.Sprintf("%v/configs/%v.service", node, component)
 	err := ioutil.WriteFile(path, []byte(unitfile), 0755)
 	if err != nil {
@@ -57,9 +84,9 @@ func CreateSystemdUnitFile(node, component string) {
 	}
 }
 
-//CreateConfigFile creates a config for a component and writes it to the node configs
-func CreateConfigFile(node, component string, connectTo, connectToAddress *string) {
-	config := GetConfig(node, component, connectTo, connectToAddress)
+//createConfigFile creates a config for a component and writes it to the node configs
+func createConfigFile(node, component string, connectTo, connectToAddress *string) {
+	config := getConfig(node, component, connectTo, connectToAddress)
 	if config != "" {
 		extension := "json"
 		if strings.HasPrefix(component, "vpn-") {
@@ -87,13 +114,9 @@ func List(node string) []string {
 	return list
 }
 
-// GetConfig returns the config for a susi component
-func GetConfig(node, component string, connectTo, connectToAddress *string) string {
+// getConfig returns the config for a susi component
+func getConfig(node, component string, connectTo, connectToAddress *string) string {
 	switch component {
-	case "susi-core":
-		{
-			return ""
-		}
 	case "susi-cluster":
 		{
 			id := *connectTo
@@ -101,77 +124,24 @@ func GetConfig(node, component string, connectTo, connectToAddress *string) stri
 			if connectToAddress != nil {
 				addr = *connectToAddress
 			}
-			port := 4000
 			key := node + "@" + *connectTo + ".key"
 			crt := node + "@" + *connectTo + ".crt"
-			specificConfig := fmt.Sprintf(`{
-			"nodes": [{
-			"id": "%v",
-			"addr": "%v",
-			"port": %v,
-			"cert": "/etc/susi/keys/%v",
-			"key": "/etc/susi/keys/%v",
-			"forwardConsumers": [],
-			"forwardProcessors": [],
-			"registerConsumers": [],
-			"registerProcessors": []
-			}]
-			}`, id, addr, port, crt, key)
-			return fmt.Sprintf(`{
-			  "susi-addr": "localhost",
-			  "susi-port": 4000,
-			  "cert": "/etc/susi/keys/%v.crt",
-			  "key": "/etc/susi/keys/%v.key",
-			  "component": %v
-			}
-			`, component, component, specificConfig)
-		}
-	case "vpn-server":
-		{
-			return openvpnServerConfig
-		}
-	case "vpn-client":
-		{
-			return fmt.Sprintf(openvpnClientConfigTemplate, *connectToAddress, *connectTo, node+"@"+*connectTo, node+"@"+*connectTo)
+			return fmt.Sprintf(components[component].Config(), id, addr, crt, key)
 		}
 	default:
 		{
-			specificConfig := configs[component]
-			if specificConfig == "" {
-				specificConfig = "{}"
-			}
-			content := fmt.Sprintf(`{
-				"susi-addr": "localhost",
-				"susi-port": 4000,
-				"cert": "/etc/susi/keys/%v.crt",
-				"key": "/etc/susi/keys/%v.key",
-				"component": %v
-			}
-			`, component, component, specificConfig)
-			return content
+			return components[component].Config()
 		}
 	}
 }
 
 // GetStartCommand returns the start command for a service
 func GetStartCommand(component string) string {
-	start := "/bin/" + component
-	if component == "susi-core" {
-		start = "/usr/local/bin/susi-core -k /etc/susi/keys/susi-core.key -c /etc/susi/keys/susi-core.crt"
-	} else if component == "susi-gowebstack" {
-		start = "/usr/local/bin/susi-gowebstack -susiaddr 127.0.0.1:4000 -assets /usr/share/susi/webroot/ -cert /etc/susi/keys/susi-gowebstack.crt -key /etc/susi/keys/susi-gowebstack.key -webaddr=:80"
-	} else if strings.HasPrefix(component, "susi-") {
-		start = fmt.Sprintf("/usr/local/bin/%v -c /etc/susi/%v.json", component, component)
-	} else if component == "vpn-server" {
-		start = "/usr/sbin/openvpn --config /etc/susi/vpn-server.ovpn"
-	} else if component == "vpn-client" {
-		start = "/usr/sbin/openvpn --config /etc/susi/vpn-client.ovpn"
-	}
-	return start
+	return components[component].StartCommand()
 }
 
-// GetUnitfile returns a systemd unit file
-func GetUnitfile(component string) string {
+// getUnitfile returns a systemd unit file
+func getUnitfile(component string) string {
 	type UnitData struct {
 		Component string
 		Start     string
@@ -198,94 +168,61 @@ WantedBy=multi-user.target
 	return buff.String()
 }
 
-// Configs contain the component specific configs
-var configs = map[string]string{
-	"susi-core": `{}`,
-
-	"susi-authenticator": `{
-    "file": "/usr/share/susi/authenticator.json"
-  }`,
-
-	"susi-cluster": `{
-      "nodes": [{
-          "id": "forge",
-          "addr": "forge.gcloud.webvariants.de",
-          "port": 4000,
-          "cert": "/etc/susi/keys/cluster_cert.pem",
-          "key": "/etc/susi/keys/cluster_key.pem",
-          "forwardConsumers": [".*"]
-      }]
-  }`,
-
-	"susi-duktape": `{
-    "src": "/usr/share/susi/duktape-script.js"
-  }`,
-
-	"susi-heartbeat": `{}`,
-
-	"susi-leveldb": `{
-      "db": "/usr/share/susi/leveldb"
-  }`,
-
-	"susi-mqtt": `{
-      "mqtt-addr": "localhost",
-      "mqtt-port": 1883,
-      "forward": [".*@mqtt"],
-      "subscribe": ["susi/#"]
-  }`,
-
-	"susi-serial": `{
-      "ports" : [
-          {
-              "id" : "arduino",
-              "port" : "/dev/ttyUSB0",
-              "baudrate" : 9600
-          }
-      ]
-  }`,
-
-	"susi-shell": `{
-      "commands": {
-          "stdoutTest": "echo -n 'Hello World!'",
-          "stderrTest": "ls /foobar",
-          "argumentTest": "ls $location"
-      }
-  }`,
-
-	"susi-statefile": `{
-      "file": "/usr/share/susi/statefile.json"
-  }`,
-
-	"susi-udpserver": `{
-      "port": 4001
-  }`,
-
-	"susi-webhooks": `{}`,
+func execBuildScript(script string) {
+	cmd := exec.Command("sudo", "/bin/bash", "-c", script)
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	err := cmd.Run()
+	if err != nil {
+		log.Println("Error: ", err)
+	}
 }
 
-var openvpnServerConfig = `
-port 1194
-proto tcp
-dev tun
-ca /etc/susi/keys/ca.crt
-cert /etc/susi/keys/vpn-server.crt
-key /etc/susi/keys/vpn-server.key
-dh /etc/susi/keys/dh.pem
-server 10.8.0.0 255.255.255.0
-ifconfig-pool-persist ipp.txt
-client-to-client
-keepalive 10 120
-`
+func execSignScript(script string) {
+	cmd := exec.Command("/bin/bash", "-c", script)
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	err := cmd.Run()
+	if err != nil {
+		log.Println("Error: ", err)
+	}
+}
 
-var openvpnClientConfigTemplate = `
-client
-proto tcp
-dev tun
-remote %v 1194
-ca /etc/susi/keys/%v.ca.crt
-cert /etc/susi/keys/%v.crt
-key /etc/susi/keys/%v.key
-ns-cert-type server
-comp-lzo
-verb 3
-`
+func signContainer(container, gpgpass string) {
+	if gpgpass != "" {
+		fmt.Printf("Signing %v...\n", container)
+		signScript := fmt.Sprintf(`
+			if ! test -f %v.asc; then
+				gpg --batch --passphrase %v --sign --detach-sign --armor %v
+			fi
+			`, container, gpgpass, container)
+		execSignScript(signScript)
+	}
+}
+
+func buildBaseContainer() {
+	script := `
+		mkdir -p .containers
+		chmod 777 .containers
+
+	  acbuild --debug begin
+	  # Name the ACI
+	  acbuild --debug set-name susi.io/susi-base
+	  # Based on alpine
+	  acbuild --debug dep add quay.io/coreos/alpine-sh
+	  acbuild --debug run -- /bin/sh -c "echo -en 'http://dl-4.alpinelinux.org/alpine/v3.3/main\n' > /etc/apk/repositories"
+	  acbuild --debug run -- apk update
+	  acbuild --debug run -- apk add libstdc++ libssl1.0 boost-system boost-program_options
+
+	  for lib in .build/alpine/lib/*.so; do
+	    acbuild --debug copy $lib /lib/$(basename $lib)
+	  done
+
+
+	  acbuild --debug write --overwrite .containers/susi-base-latest-linux-amd64.aci
+	  acbuild --debug end
+	`
+	if _, err := os.Stat(".containers/susi-base-latest-linux-amd64.aci"); err != nil {
+		execBuildScript(script)
+	}
+}

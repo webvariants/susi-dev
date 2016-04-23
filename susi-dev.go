@@ -103,9 +103,8 @@ func build(nodeID string) {
 	switch *targetOS {
 	case "alpine":
 		{
-			container.BuildAlpineBaseContainer()
 			for _, component := range components.List(nodeID) {
-				container.BuildAlpineContainer(nodeID, component, *gpgPass)
+				components.Build(nodeID, component, *gpgPass)
 			}
 		}
 	default:

@@ -71,7 +71,7 @@ func BuildAlpineBuilder(gpgpass string) {
     # Run build
     acbuild --debug set-exec -- /bin/sh -c "cd /out && cmake /susi && make -j8 && GOPATH=/out go get github.com/webvariants/susi-gowebstack"
 
-    # Write the result
+
     acbuild --debug write --overwrite .containers/susi-builder-alpine-latest-linux-amd64.aci
   fi
 
@@ -126,7 +126,7 @@ func BuildAlpineBaseContainer() {
       acbuild --debug copy $lib /lib/$(basename $lib)
     done
 
-    # Write the result
+
     acbuild --debug write --overwrite .containers/susi-base-latest-linux-amd64.aci
     acbuild --debug end
   fi`
@@ -164,7 +164,7 @@ func BuildAlpineContainer(node, component, gpgpass string) {
 
   acbuild --debug set-exec -- {{.Start}}
 
-  # Write the result
+
   acbuild --debug write --overwrite {{.Node}}/containers/{{.Component}}-latest-linux-amd64.aci
 	if test -f {{.Node}}/containers/{{.Component}}-latest-linux-amd64.aci.asc; then
 		rm {{.Node}}/containers/{{.Component}}-latest-linux-amd64.aci.asc
@@ -242,7 +242,7 @@ func BuildDebianBuilder(version, gpgpass string) {
     # Run build
     acbuild set-exec -- /bin/sh -c "cd /out && cmake /susi && make -j8 package && GOPATH=/out go get github.com/webvariants/susi-gowebstack"
 
-    # Write the result
+
     acbuild --debug write --overwrite .containers/susi-builder-debian-%v-latest-linux-amd64.aci
   fi
 
