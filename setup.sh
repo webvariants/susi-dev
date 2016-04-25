@@ -1,6 +1,7 @@
 #!/bin/bash
 
 if uname -a | grep Ubuntu; then
+  sudo apt-get update
   sudo apt-get --yes install golang gcc systemd-container rng-tools
 fi
 
