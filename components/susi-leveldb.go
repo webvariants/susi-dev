@@ -24,6 +24,10 @@ func (p *susiLevelDBComponent) StartCommand() string {
 	return "/usr/local/bin/susi-leveldb -c /etc/susi/susi-leveldb.json"
 }
 
+func (p *susiLevelDBComponent) ExtraShell(node string) string {
+	return ""
+}
+
 func (p *susiLevelDBComponent) buildBaseContainer() {
 	buildBaseContainer()
 	script := `

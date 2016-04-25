@@ -21,6 +21,10 @@ func (p *susiWebhooksComponent) StartCommand() string {
 	return "/usr/local/bin/susi-webhooks -c /etc/susi/susi-webhooks.json"
 }
 
+func (p *susiWebhooksComponent) ExtraShell(node string) string {
+	return ""
+}
+
 func (p *susiWebhooksComponent) BuildContainer(node, gpgpass string) {
 	buildBaseContainer()
 	templateString := `

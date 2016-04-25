@@ -27,6 +27,10 @@ func (p *susiShellComponent) StartCommand() string {
 	return "/usr/local/bin/susi-shell -c /etc/susi/susi-shell.json"
 }
 
+func (p *susiShellComponent) ExtraShell(node string) string {
+	return ""
+}
+
 func (p *susiShellComponent) BuildContainer(node, gpgpass string) {
 	buildBaseContainer()
 	templateString := `

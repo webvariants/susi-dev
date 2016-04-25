@@ -27,6 +27,10 @@ func (p *susiMQTTComponent) StartCommand() string {
 	return "/usr/local/bin/susi-mqtt -c /etc/susi/susi-mqtt.json"
 }
 
+func (p *susiMQTTComponent) ExtraShell(node string) string {
+	return ""
+}
+
 func (p *susiMQTTComponent) buildBaseContainer() {
 	buildBaseContainer()
 	script := `
@@ -35,8 +39,6 @@ func (p *susiMQTTComponent) buildBaseContainer() {
     acbuild --debug run -- /bin/sh -c "echo -en 'http://dl-4.alpinelinux.org/alpine/v3.3/main\n' > /etc/apk/repositories"
 	  acbuild --debug run -- apk update
 	  acbuild --debug run -- apk add mosquitto-libs mosquitto-libs++
-
-
 	  acbuild --debug write --overwrite .containers/susi-mqtt-base-latest-linux-amd64.aci
 	  acbuild --debug end
 	`
@@ -48,11 +50,8 @@ func (p *susiMQTTComponent) buildBaseContainer() {
 func (p *susiMQTTComponent) BuildContainer(node, gpgpass string) {
 	p.buildBaseContainer()
 	templateString := `
-
 	acbuild --debug begin .containers/susi-mqtt-base-latest-linux-amd64.aci
-
   acbuild --debug set-name susi.io/susi-mqtt
-
   acbuild --debug copy .build/alpine/bin/susi-mqtt /usr/local/bin/susi-mqtt
   acbuild --debug copy {{.Node}}/pki/pki/issued/susi-mqtt.crt /etc/susi/keys/susi-mqtt.crt
   acbuild --debug copy {{.Node}}/pki/pki/private/susi-mqtt.key /etc/susi/keys/susi-mqtt.key
@@ -63,14 +62,10 @@ func (p *susiMQTTComponent) BuildContainer(node, gpgpass string) {
   for key in $(find {{.Node}}/foreignKeys -type f); do
     acbuild --debug copy $key /etc/susi/keys/$(echo $key|cut -d\/ -f 3,4,5,6,7,8,9)
   done
-
 	cp nodes.txt .hosts
 	echo "127.0.0.1 localhost" >> .hosts
 	acbuild --debug copy .hosts /etc/hosts
-
   acbuild --debug set-exec -- {{.Start}}
-
-
   acbuild --debug write --overwrite {{.Node}}/containers/susi-mqtt-latest-linux-amd64.aci
 	if test -f {{.Node}}/containers/susi-mqtt-latest-linux-amd64.aci.asc; then
 		rm {{.Node}}/containers/susi-mqtt-latest-linux-amd64.aci.asc

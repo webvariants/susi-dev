@@ -12,9 +12,10 @@ susi-dev also automatically creates proper config file templates for the majorit
   * clone -> clone the source of susi
   * checkout $branch -> checkout a specific branch
   * build --os $OS --gpgpass $pass -> build it for one of alpine, debian-stable, debian-testing or native
-* susi-dev build $node --gpgpass $pass -> build containers for a node
+* susi-dev build --gpgpass $pass -> build containers
 * susi-dev start ($node) -> runs the containers
 * susi-dev stop ($node) -> stops the containers
+* susi-dev logs $node -> show the container logs (journalctl options available)
 * susi-dev pki
   * create $folder -> create a new public key infrastructure
   * add $folder $client -> create and sign a new client certificate
@@ -42,31 +43,31 @@ Go ahead and paste the "How To Develop" code into your shell. After a few minute
 Simply copy and paste this into your console to simulate the setup of a gateway application.
 
 ```bash
-
 # Download and compile susi binaries
 susi-dev source build --gpgpass $GPG_PASS
 
 # Create a cloud instance
-susi-dev create gateway-1 # setup a new instance named 'gateway-1'
-susi-dev add gateway-1 susi-core # add susi-core to 'gateway-1'
-susi-dev add gateway-1 susi-duktape # add susi-duktape (js interpreter) to 'gateway-1'
-susi-dev add gateway-1 susi-gowebstack # add susi-gowebstack (http server) to 'gateway-1'
+susi-dev create gateway # setup a new instance named 'gateway'
+susi-dev add gateway susi-core # add susi-core to 'gateway'
+susi-dev add gateway susi-duktape # add susi-duktape (js interpreter) to 'gateway'
+susi-dev add gateway susi-gowebstack # add susi-gowebstack (http server) to 'gateway'
 
 # add js sources...
 echo "\
 susi.registerConsumer('duktape::ready',function(){\
   console.log('Hello World!');\
 });\
-susi.publish({topic: 'duktape::ready'});" > gateway-1/assets/duktape-script.js
+susi.publish({topic: 'duktape::ready'});" > gateway/assets/duktape-script.js
 
 # add ui
-mkdir gateway-1/assets/webroot
-echo "it works" > gateway-1/assets/webroot/index.html
+mkdir gateway/assets/webroot
+echo "it works" > gateway/assets/webroot/index.html
 
-# build containers for 'gateway-1'
-susi-dev build gateway-1 --gpgpass $GPG_PASS # build containers for 'gateway-1'
-susi-dev start gateway-1 # run containers for 'gateway-1'
+# build containers for 'gateway'
+susi-dev build gateway --gpgpass $GPG_PASS # build containers for 'gateway'
+susi-dev start gateway # run containers for 'gateway'
 
+susi-dev logs gateway -u susi-duktape -f
 ```
 
 Do you see the "Hello World!" in the logs? This comes from our deployed js.
@@ -78,9 +79,9 @@ and do a wget on it: "it works" ;)
 To deploy to a physical device or virtual machine, make sure you have deployed your ssh key to the machine (ssh-copy-id user@host) and you have sudo.
 Then use the following command:
 ```bash
-susi-dev deploy gateway-1 user@host
+susi-dev deploy gateway user@host
 ```
-Now, your current configuration of 'gateway-1' is deployed to the machine 'host'.
+Now, your current configuration of 'gateway' is deployed to the machine 'host'.
 Do not forget that you need to install the susi-binaries on that host. You can either copy the binaries by yourself, or deploy a matching debian package.
 
 ## How to build debian packages

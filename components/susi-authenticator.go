@@ -23,6 +23,10 @@ func (p *susiAuthenticatorComponent) StartCommand() string {
 	return "/usr/local/bin/susi-authenticator -c /etc/susi/susi-authenticator.json"
 }
 
+func (p *susiAuthenticatorComponent) ExtraShell(node string) string {
+	return ""
+}
+
 func (p *susiAuthenticatorComponent) BuildContainer(node, gpgpass string) {
 	buildBaseContainer()
 

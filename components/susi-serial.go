@@ -29,6 +29,10 @@ func (p *susiSerialComponent) StartCommand() string {
 	return "/usr/local/bin/susi-serial -c /etc/susi/susi-serial.json"
 }
 
+func (p *susiSerialComponent) ExtraShell(node string) string {
+	return ""
+}
+
 func (p *susiSerialComponent) BuildContainer(node, gpgpass string) {
 	buildBaseContainer()
 	templateString := `

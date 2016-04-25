@@ -15,6 +15,10 @@ func (p *susiCoreComponent) StartCommand() string {
 	return "/usr/local/bin/susi-core -k /etc/susi/keys/susi-core.key -c /etc/susi/keys/susi-core.crt"
 }
 
+func (p *susiCoreComponent) ExtraShell(node string) string {
+	return ""
+}
+
 func (p *susiCoreComponent) BuildContainer(node, gpgpass string) {
 	buildBaseContainer()
 	templateString := `

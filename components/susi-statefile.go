@@ -23,6 +23,10 @@ func (p *susiStatefileComponent) StartCommand() string {
 	return "/usr/local/bin/susi-statefile -c /etc/susi/susi-statefile.json"
 }
 
+func (p *susiStatefileComponent) ExtraShell(node string) string {
+	return ""
+}
+
 func (p *susiStatefileComponent) BuildContainer(node, gpgpass string) {
 	buildBaseContainer()
 	templateString := `

@@ -18,6 +18,7 @@ type Component interface {
 	Config() string
 	StartCommand() string
 	BuildContainer(node, gpgpass string)
+	ExtraShell(node string) string
 }
 
 var components map[string]Component
@@ -35,6 +36,9 @@ func init() {
 	components["susi-statefile"] = new(susiStatefileComponent)
 	components["susi-udpserver"] = new(susiUDPServerComponent)
 	components["susi-webhooks"] = new(susiWebhooksComponent)
+	components["susi-gowebstack"] = new(susiWebstackComponent)
+	components["susi-nodejs"] = new(susiNodeJSComponent)
+	components["susi-go"] = new(susiGoComponent)
 }
 
 func filterStringList(s []string, fn func(string) bool) []string {
@@ -52,6 +56,12 @@ func Add(node, component string, connectTo *string, connectToAddress *string) {
 	pki.CreateCertificate(node+"/pki", component)
 	createSystemdUnitFile(node, component)
 	createConfigFile(node, component, connectTo, connectToAddress)
+
+	extra := components[component].ExtraShell(node)
+	if extra != "" {
+		exec.Command("/bin/bash", "-c", extra).Run()
+	}
+
 	if *connectTo != "" {
 		pki.CreateCertificate(*connectTo+"/pki", node)
 		srcFolder := *connectTo + "/pki/pki/issued/" + node + ".crt"
@@ -137,7 +147,11 @@ func getConfig(node, component string, connectTo, connectToAddress *string) stri
 
 // GetStartCommand returns the start command for a service
 func GetStartCommand(component string) string {
-	return components[component].StartCommand()
+	if c, ok := components[component]; ok {
+		return c.StartCommand()
+	}
+	log.Fatal("no such component")
+	return ""
 }
 
 // getUnitfile returns a systemd unit file

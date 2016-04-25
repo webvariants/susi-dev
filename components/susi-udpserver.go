@@ -23,6 +23,10 @@ func (p *susiUDPServerComponent) StartCommand() string {
 	return "/usr/local/bin/susi-udpserver -c /etc/susi/susi-udpserver.json"
 }
 
+func (p *susiUDPServerComponent) ExtraShell(node string) string {
+	return ""
+}
+
 func (p *susiUDPServerComponent) BuildContainer(node, gpgpass string) {
 	buildBaseContainer()
 	templateString := `

@@ -194,26 +194,25 @@ func main() {
 			case "build":
 				{
 					buildFlags.Parse(os.Args[3:])
-					source.Clone()
+					if _, err := os.Stat(".susi-src"); err != nil {
+						source.Clone()
+					}
 					switch *targetOS {
 					case "alpine":
 						{
-							container.BuildAlpineBuilder(*gpgPass)
-							container.RunAlpineBuilder()
+							source.Build(*gpgPass)
 						}
 					case "debian-stable":
 						{
-							container.BuildDebianBuilder("stable", *gpgPass)
-							container.RunDebianBuilder("stable")
+							source.Package("stable", *gpgPass)
 						}
 					case "debian-testing":
 						{
-							container.BuildDebianBuilder("testing", *gpgPass)
-							container.RunDebianBuilder("testing")
+							source.Package("testing", *gpgPass)
 						}
 					case "native":
 						{
-							container.RunNativeBuilder()
+							source.BuildNative()
 						}
 					default:
 						{
@@ -227,7 +226,9 @@ func main() {
 				}
 			case "clone":
 				{
-					source.Clone()
+					if _, err := os.Stat(".susi-src"); err != nil {
+						source.Clone()
+					}
 				}
 			}
 		}

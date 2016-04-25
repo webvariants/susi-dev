@@ -34,6 +34,10 @@ func (p *susiClusterComponent) StartCommand() string {
 	return "/usr/local/bin/susi-cluster -c /etc/susi/susi-cluster.json"
 }
 
+func (p *susiClusterComponent) ExtraShell(node string) string {
+	return ""
+}
+
 func (p *susiClusterComponent) BuildContainer(node, gpgpass string) {
 	buildBaseContainer()
 	templateString := `

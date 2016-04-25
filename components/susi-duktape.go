@@ -2,6 +2,7 @@ package components
 
 import (
 	"bytes"
+	"fmt"
 	"html/template"
 )
 
@@ -21,6 +22,15 @@ func (p *susiDuktapeComponent) Config() string {
 
 func (p *susiDuktapeComponent) StartCommand() string {
 	return "/usr/local/bin/susi-duktape -c /etc/susi/susi-duktape.json"
+}
+
+func (p *susiDuktapeComponent) ExtraShell(node string) string {
+	return fmt.Sprintf(`echo -en "susi.registerConsumer('duktape-example', function(event){\n\
+  console.log(event.payload);\n\
+});\n\
+susi.publish({topic:'duktape-example',payload:42});\n"\
+> %v/assets/duktape-script.js
+	`, node)
 }
 
 func (p *susiDuktapeComponent) BuildContainer(node, gpgpass string) {
