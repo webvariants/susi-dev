@@ -61,7 +61,7 @@ func Build(gpgpass string) {
 	--trust-keys-from-https \
   --volume susi,kind=host,source=$(pwd)/.susi-src \
   --volume out,kind=host,source=$(pwd)/.build/alpine \
-  .containers/susi-builder-alpine-latest-linux-amd64.aci
+  /var/lib/susi-dev/containers/susi-builder-alpine-latest-linux-amd64.aci
   `)
 	fmt.Println("Running alpine build...")
 	runScriptWithSudo(script)
@@ -76,7 +76,7 @@ func Package(debianVersion, gpgpass string) {
 		--trust-keys-from-https \
 		--volume susi,kind=host,source=$(pwd)/.susi-src \
 		--volume out,kind=host,source=$(pwd)/.build/debian-%v \
-		.containers/susi-builder-debian-%v-latest-linux-amd64.aci
+		/var/lib/susi-dev/containers/susi-builder-debian-%v-latest-linux-amd64.aci
 	cp .build/debian-%v/*.deb ./susi-debian-%v.deb
 	`, debianVersion, debianVersion, debianVersion, debianVersion, debianVersion)
 	fmt.Printf("Running debian %v build...\n", debianVersion)
@@ -97,14 +97,14 @@ func BuildNative() {
 }
 
 func buildAlpineBuilder(gpgpass string) {
-	if _, err := os.Stat(".containers/susi-builder-alpine-latest-linux-amd64.aci"); err != nil && gpgpass == "" {
+	if _, err := os.Stat("/var/lib/susi-dev/containers/susi-builder-alpine-latest-linux-amd64.aci"); err != nil && gpgpass == "" {
 		log.Fatal("please specify --gpgpass")
 	}
 	script := `
-	if ! test -f .containers/susi-builder-alpine-latest-linux-amd64.aci; then
+	if ! test -f /var/lib/susi-dev/containers/susi-builder-alpine-latest-linux-amd64.aci; then
 		set -e
-		mkdir -p .containers
-		chmod 777 .containers
+		mkdir -p /var/lib/susi-dev/containers
+		chmod 777 /var/lib/susi-dev/containers
 		acbuild --debug begin
 		trap "{ export EXT=$?; acbuild --debug end && exit $EXT; }" EXIT
 		acbuild --debug set-name susi.io/alpine-builder
@@ -116,7 +116,7 @@ func buildAlpineBuilder(gpgpass string) {
 		acbuild --debug mount add susi /susi
 		acbuild --debug mount add out /out
 		acbuild --debug set-exec -- /bin/sh -c "cd /out && cmake /susi && make -j8 && GOPATH=/out go get github.com/webvariants/susi-gowebstack"
-		acbuild --debug write --overwrite .containers/susi-builder-alpine-latest-linux-amd64.aci
+		acbuild --debug write --overwrite /var/lib/susi-dev/containers/susi-builder-alpine-latest-linux-amd64.aci
 	fi
 	`
 	fmt.Println("Preparing alpine build container...")
@@ -124,8 +124,8 @@ func buildAlpineBuilder(gpgpass string) {
 	if gpgpass != "" {
 		fmt.Println("Signing alpine build container...")
 		signScript := fmt.Sprintf(`
-			if ! test -f .containers/susi-builder-alpine-latest-linux-amd64.aci.asc; then
-				gpg --batch --passphrase %v --sign --detach-sign --armor .containers/susi-builder-alpine-latest-linux-amd64.aci
+			if ! test -f /var/lib/susi-dev/containers/susi-builder-alpine-latest-linux-amd64.aci.asc; then
+				gpg --batch --passphrase %v --sign --detach-sign --armor /var/lib/susi-dev/containers/susi-builder-alpine-latest-linux-amd64.aci
 			fi
 			`, gpgpass)
 		runScript(signScript)
@@ -133,20 +133,20 @@ func buildAlpineBuilder(gpgpass string) {
 }
 
 func buildDebianBuilder(version, gpgpass string) {
-	container := fmt.Sprintf(".containers/susi-builder-debian-%v-latest-linux-amd64.aci", version)
+	container := fmt.Sprintf("/var/lib/susi-dev/containers/susi-builder-debian-%v-latest-linux-amd64.aci", version)
 	if _, err := os.Stat(container); err != nil && gpgpass == "" {
 		log.Fatal("please specify --gpgpass")
 	}
 	script := fmt.Sprintf(`
-  if ! test -f .containers/susi-builder-debian-%v-latest-linux-amd64.aci; then
+  if ! test -f /var/lib/susi-dev/containers/susi-builder-debian-%v-latest-linux-amd64.aci; then
     set -e
-		mkdir -p .containers
-		chmod 777 .containers
-		if ! test -f .containers/debian-%v.aci; then
+		mkdir -p /var/lib/susi-dev/containers
+		chmod 777 /var/lib/susi-dev/containers
+		if ! test -f /var/lib/susi-dev/containers/debian-%v.aci; then
 			docker2aci docker://debian:%v
-			mv library-debian-%v.aci .containers/debian-%v.aci
+			mv library-debian-%v.aci /var/lib/susi-dev/containers/debian-%v.aci
 		fi
-    acbuild begin .containers/debian-%v.aci
+    acbuild begin /var/lib/susi-dev/containers/debian-%v.aci
     trap "{ export EXT=$?; acbuild --debug end && exit $EXT; }" EXIT
     acbuild set-name susi.io/debian-%v-builder
     acbuild --debug run -- apt-get --yes update
@@ -155,7 +155,7 @@ func buildDebianBuilder(version, gpgpass string) {
     acbuild mount add susi /susi
     acbuild mount add out /out
     acbuild set-exec -- /bin/sh -c "cd /out && cmake /susi && make -j8 package && GOPATH=/out go get github.com/webvariants/susi-gowebstack"
-    acbuild --debug write --overwrite .containers/susi-builder-debian-%v-latest-linux-amd64.aci
+    acbuild --debug write --overwrite /var/lib/susi-dev/containers/susi-builder-debian-%v-latest-linux-amd64.aci
   fi
 
   if ! test -d .susi-src; then
@@ -168,8 +168,8 @@ func buildDebianBuilder(version, gpgpass string) {
 	if gpgpass != "" {
 		fmt.Printf("Signing debian %v build container...\n", version)
 		signScript := fmt.Sprintf(`
-			if ! test -f .containers/susi-builder-debian-%v-latest-linux-amd64.aci.asc; then
-				gpg --batch --passphrase %v --sign --detach-sign --armor .containers/susi-builder-debian-%v-latest-linux-amd64.aci
+			if ! test -f /var/lib/susi-dev/containers/susi-builder-debian-%v-latest-linux-amd64.aci.asc; then
+				gpg --batch --passphrase %v --sign --detach-sign --armor /var/lib/susi-dev/containers/susi-builder-debian-%v-latest-linux-amd64.aci
 			fi
 			`, version, gpgpass, version)
 		runScript(signScript)

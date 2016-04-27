@@ -216,27 +216,29 @@ func signContainer(container, gpgpass string) {
 
 func buildBaseContainer() {
 	script := `
-		mkdir -p .containers
-		chmod 777 .containers
+		if ! test -f /var/lib/susi-dev/containers/susi-base-latest-linux-amd64.aci; then
+			mkdir -p /var/lib/susi-dev/containers
+			chmod 777 /var/lib/susi-dev/containers
 
-	  acbuild --debug begin
-	  # Name the ACI
-	  acbuild --debug set-name susi.io/susi-base
-	  # Based on alpine
-	  acbuild --debug dep add quay.io/coreos/alpine-sh
-	  acbuild --debug run -- /bin/sh -c "echo -en 'http://dl-4.alpinelinux.org/alpine/v3.3/main\n' > /etc/apk/repositories"
-	  acbuild --debug run -- apk update
-	  acbuild --debug run -- apk add libstdc++ libssl1.0 boost-system boost-program_options
+		  acbuild --debug begin
+		  # Name the ACI
+		  acbuild --debug set-name susi.io/susi-base
+		  # Based on alpine
+		  acbuild --debug dep add quay.io/coreos/alpine-sh
+		  acbuild --debug run -- /bin/sh -c "echo -en 'http://dl-4.alpinelinux.org/alpine/v3.3/main\n' > /etc/apk/repositories"
+		  acbuild --debug run -- apk update
+		  acbuild --debug run -- apk add libstdc++ libssl1.0 boost-system boost-program_options
 
-	  for lib in .build/alpine/lib/*.so; do
-	    acbuild --debug copy $lib /lib/$(basename $lib)
-	  done
+		  for lib in .build/alpine/lib/*.so; do
+		    acbuild --debug copy $lib /lib/$(basename $lib)
+		  done
 
 
-	  acbuild --debug write --overwrite .containers/susi-base-latest-linux-amd64.aci
-	  acbuild --debug end
+		  acbuild --debug write --overwrite /var/lib/susi-dev/containers/susi-base-latest-linux-amd64.aci
+		  acbuild --debug end
+		fi
 	`
-	if _, err := os.Stat(".containers/susi-base-latest-linux-amd64.aci"); err != nil {
+	if _, err := os.Stat("/var/lib/susi-dev/containers/susi-base-latest-linux-amd64.aci"); err != nil {
 		execBuildScript(script)
 	}
 }

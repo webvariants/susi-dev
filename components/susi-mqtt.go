@@ -34,15 +34,15 @@ func (p *susiMQTTComponent) ExtraShell(node string) string {
 func (p *susiMQTTComponent) buildBaseContainer() {
 	buildBaseContainer()
 	script := `
-	  acbuild --debug begin .containers/susi-base-latest-linux-amd64.aci
+	  acbuild --debug begin /var/lib/susi-dev/containers/susi-base-latest-linux-amd64.aci
 	  acbuild --debug set-name susi.io/susi-mqtt-base
     acbuild --debug run -- /bin/sh -c "echo -en 'http://dl-4.alpinelinux.org/alpine/v3.3/main\n' > /etc/apk/repositories"
 	  acbuild --debug run -- apk update
 	  acbuild --debug run -- apk add mosquitto-libs mosquitto-libs++
-	  acbuild --debug write --overwrite .containers/susi-mqtt-base-latest-linux-amd64.aci
+	  acbuild --debug write --overwrite /var/lib/susi-dev/containers/susi-mqtt-base-latest-linux-amd64.aci
 	  acbuild --debug end
 	`
-	if _, err := os.Stat(".containers/susi-mqtt-base-latest-linux-amd64.aci"); err != nil {
+	if _, err := os.Stat("/var/lib/susi-dev/containers/susi-mqtt-base-latest-linux-amd64.aci"); err != nil {
 		execBuildScript(script)
 	}
 }
@@ -50,7 +50,7 @@ func (p *susiMQTTComponent) buildBaseContainer() {
 func (p *susiMQTTComponent) BuildContainer(node, gpgpass string) {
 	p.buildBaseContainer()
 	templateString := `
-	acbuild --debug begin .containers/susi-mqtt-base-latest-linux-amd64.aci
+	acbuild --debug begin /var/lib/susi-dev/containers/susi-mqtt-base-latest-linux-amd64.aci
   acbuild --debug set-name susi.io/susi-mqtt
   acbuild --debug copy .build/alpine/bin/susi-mqtt /usr/local/bin/susi-mqtt
   acbuild --debug copy {{.Node}}/pki/pki/issued/susi-mqtt.crt /etc/susi/keys/susi-mqtt.crt

@@ -22,7 +22,7 @@ func (p *susiWebstackComponent) ExtraShell(node string) string {
 func (p *susiWebstackComponent) BuildContainer(node, gpgpass string) {
 	buildBaseContainer()
 	templateString := `
-	acbuild --debug begin .containers/susi-base-latest-linux-amd64.aci
+	acbuild --debug begin /var/lib/susi-dev/containers/susi-base-latest-linux-amd64.aci
 
   acbuild --debug set-name susi.io/susi-gowebstack
 

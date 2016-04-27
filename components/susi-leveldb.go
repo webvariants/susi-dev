@@ -31,16 +31,16 @@ func (p *susiLevelDBComponent) ExtraShell(node string) string {
 func (p *susiLevelDBComponent) buildBaseContainer() {
 	buildBaseContainer()
 	script := `
-	  acbuild --debug begin .containers/susi-base-latest-linux-amd64.aci
+	  acbuild --debug begin /var/lib/susi-dev/containers/susi-base-latest-linux-amd64.aci
 	  acbuild --debug set-name susi.io/susi-leveldb-base
     acbuild --debug run -- /bin/sh -c "echo -en 'http://dl-4.alpinelinux.org/alpine/v3.3/main\n@testing http://dl-4.alpinelinux.org/alpine/edge/testing\n' > /etc/apk/repositories"
 	  acbuild --debug run -- apk update
 	  acbuild --debug run -- apk add leveldb-dev@testing
 
-	  acbuild --debug write --overwrite .containers/susi-leveldb-base-latest-linux-amd64.aci
+	  acbuild --debug write --overwrite /var/lib/susi-dev/containers/susi-leveldb-base-latest-linux-amd64.aci
 	  acbuild --debug end
 	`
-	if _, err := os.Stat(".containers/susi-leveldb-base-latest-linux-amd64.aci"); err != nil {
+	if _, err := os.Stat("/var/lib/susi-dev/containers/susi-leveldb-base-latest-linux-amd64.aci"); err != nil {
 		execBuildScript(script)
 	}
 }
@@ -48,7 +48,7 @@ func (p *susiLevelDBComponent) buildBaseContainer() {
 func (p *susiLevelDBComponent) BuildContainer(node, gpgpass string) {
 	p.buildBaseContainer()
 	templateString := `
-	acbuild --debug begin .containers/susi-leveldb-base-latest-linux-amd64.aci
+	acbuild --debug begin /var/lib/susi-dev/containers/susi-leveldb-base-latest-linux-amd64.aci
 
   acbuild --debug set-name susi.io/susi-leveldb
 

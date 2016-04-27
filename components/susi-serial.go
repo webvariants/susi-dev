@@ -37,7 +37,7 @@ func (p *susiSerialComponent) BuildContainer(node, gpgpass string) {
 	buildBaseContainer()
 	templateString := `
 
-	acbuild --debug begin .containers/susi-base-latest-linux-amd64.aci
+	acbuild --debug begin /var/lib/susi-dev/containers/susi-base-latest-linux-amd64.aci
 
   acbuild --debug set-name susi.io/susi-serial
 

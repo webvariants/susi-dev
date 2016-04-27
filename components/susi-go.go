@@ -28,10 +28,10 @@ func (p *susiGoComponent) buildBaseContainer() {
 		acbuild --debug run -- mkdir /root/go
 		acbuild --debug environment add GOPATH /root/go
 		acbuild --debug run -- go get github.com/webvariants/susigo
-	  acbuild --debug write --overwrite .containers/susi-go-base-latest-linux-amd64.aci
+	  acbuild --debug write --overwrite /var/lib/susi-dev/containers/susi-go-base-latest-linux-amd64.aci
 	  acbuild --debug end
 	`
-	if _, err := os.Stat(".containers/susi-go-base-latest-linux-amd64.aci"); err != nil {
+	if _, err := os.Stat("/var/lib/susi-dev/containers/susi-go-base-latest-linux-amd64.aci"); err != nil {
 		execBuildScript(script)
 	}
 }
@@ -75,7 +75,7 @@ func main() {\n\
 func (p *susiGoComponent) BuildContainer(node, gpgpass string) {
 	p.buildBaseContainer()
 	templateString := `
-	acbuild --debug begin .containers/susi-go-base-latest-linux-amd64.aci
+	acbuild --debug begin /var/lib/susi-dev/containers/susi-go-base-latest-linux-amd64.aci
 
   acbuild --debug set-name susi.io/susi-go
 

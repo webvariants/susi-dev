@@ -24,10 +24,10 @@ func (p *susiNodeJSComponent) buildBaseContainer() {
 		acbuild --debug dep add quay.io/coreos/alpine-sh
 	  acbuild --debug run -- apk update
 	  acbuild --debug run -- apk add nodejs
-	  acbuild --debug write --overwrite .containers/susi-nodejs-base-latest-linux-amd64.aci
+	  acbuild --debug write --overwrite /var/lib/susi-dev/containers/susi-nodejs-base-latest-linux-amd64.aci
 	  acbuild --debug end
 	`
-	if _, err := os.Stat(".containers/susi-nodejs-base-latest-linux-amd64.aci"); err != nil {
+	if _, err := os.Stat("/var/lib/susi-dev/containers/susi-nodejs-base-latest-linux-amd64.aci"); err != nil {
 		execBuildScript(script)
 	}
 }
@@ -51,7 +51,7 @@ var susi = new Susi('localhost', 4000, '/etc/susi/keys/susi-nodejs.crt', '/etc/s
 func (p *susiNodeJSComponent) BuildContainer(node, gpgpass string) {
 	p.buildBaseContainer()
 	templateString := `
-	acbuild --debug begin .containers/susi-nodejs-base-latest-linux-amd64.aci
+	acbuild --debug begin /var/lib/susi-dev/containers/susi-nodejs-base-latest-linux-amd64.aci
 
   acbuild --debug set-name susi.io/susi-nodejs
 
