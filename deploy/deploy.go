@@ -32,7 +32,7 @@ func Raw(node, target string) {
 
 	sshCommand="sudo mkdir -p /etc/susi/keys && sudo mkdir -p /usr/share/susi"
 	sshCommand+=" && sudo cp ~/.susi-dev-temp/configs/*.json /etc/susi/ || true"
-	sshCommand+=" && sudo cp ~/.susi-dev-temp/configs/*.ovpn /etc/susi/ || true"
+	sshCommand+=" && sudo cp ~/.susi-dev-temp/configs/*.conf /etc/susi/ || true"
 	sshCommand+=" && sudo cp ~/.susi-dev-temp/configs/*.service /etc/systemd/system/ || true"
 	sshCommand+=" && sudo cp ~/.susi-dev-temp/keys/* /etc/susi/keys/ || true"
 	sshCommand+=" && sudo cp -rf ~/.susi-dev-temp/assets/* /usr/share/susi/ || true"

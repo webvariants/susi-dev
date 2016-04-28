@@ -39,6 +39,7 @@ func init() {
 	components["susi-gowebstack"] = new(susiWebstackComponent)
 	components["susi-nodejs"] = new(susiNodeJSComponent)
 	components["susi-go"] = new(susiGoComponent)
+	components["susi-caddy"] = new(susiCaddyComponent)
 }
 
 func filterStringList(s []string, fn func(string) bool) []string {
