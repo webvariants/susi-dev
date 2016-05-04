@@ -31,7 +31,7 @@ if ! gpg --list-keys | grep pub; then
   gpg --export --armor > mykey.pub
 fi
 echo -n "Insert your gpg passphrase: "
-read GPG_PASS
+read -s GPG_PASS
 export GPG_PASS
 
 # install susi-dev tool
