@@ -38,7 +38,7 @@ echo -en "var Susi = require('./susi');\n\
 var susi = new Susi('localhost', 4000, '/etc/susi/keys/susi-nodejs.crt', '/etc/susi/keys/susi-nodejs.key', function() {\n\
   susi.registerProcessor('nodejs-example', function(evt) {\n\
 		evt.payload = 42;\n\
-		susi.ack(evt);\n\
+		event.ack(evt);\n\
   });\n\
   susi.publish({topic:'nodejs-example'},function(event){\n\
 		console.log('The answer is', event.payload);\n\

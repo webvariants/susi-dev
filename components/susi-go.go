@@ -54,12 +54,10 @@ func main() {\n\
 \n\
 	susi.RegisterProcessor(\"the-answer\", func(event *susigo.Event) {\n\
 		event.Payload = 42\n\
-		susi.Ack(event)\n\
+		event.Ack(event)\n\
 	})\n\
 \n\
-	event := susigo.Event{\n\
-		Topic: \"the-answer\",\n\
-	}\n\
+	event := susigo.CreateEvent(\"the-answer\")\n\
 \n\
 	time.Sleep(1 * time.Second)
 	susi.Publish(event, func(event *susigo.Event) {\n\
